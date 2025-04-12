@@ -8,15 +8,15 @@ load_dotenv()
 def main():
     print("Devine Nombre Blockchain Game")
     print("=============================")
-    print("Select version to run:")
-    print("1. Basic Game")
-    print("2. Game with Rewards")
-    print("3. Generic Contract")
-    print("4. Confidential Number Game")
-    print("5. Exit")
 
     while True:
         try:
+            print("Select version to run:")
+            print("1. Basic Game")
+            print("2. Game with Stakings")
+            print("3. Game with Optional Stakings")
+            print("4. Game with Hashing The Secret Number")
+            print("5. Exit")
             choice = input("Enter your choice (1-5): ")
             if choice == '5':
                 print("Goodbye!")

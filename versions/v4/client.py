@@ -61,12 +61,25 @@ def jouer_partie(joueur_b_private_key, contrat_address):
     
     if has_staking:
         # Player B must stake ETH first
-        stake = float(input("Enter your stake in ETH: "))
-        tx_mise = contrat.functions.miser().build_transaction({
-            'from': compte.address,
-            'nonce': w3.eth.get_transaction_count(compte.address),
-            'value': w3.to_wei(stake, 'ether')
-        })
+        while True:
+            try:
+                stake = float(input("Enter your stake in ETH (must be positive): "))
+                if stake > 0:
+                    break
+                else:
+                    print("Error: Stake must be a positive value.")
+            except ValueError:
+                print("Error: Please enter a valid number.")
+        
+        try:
+            tx_mise = contrat.functions.miser().build_transaction({
+                'from': compte.address,
+                'nonce': w3.eth.get_transaction_count(compte.address),
+                'value': w3.to_wei(stake, 'ether')
+            })
+        except Exception as e:
+            print(f"Error preparing stake transaction: {e}")
+            return
         tx_mise_signe = compte.sign_transaction(tx_mise)
         tx_mise_hash = w3.eth.send_raw_transaction(tx_mise_signe.raw_transaction)
         w3.eth.wait_for_transaction_receipt(tx_mise_hash, timeout=30)
@@ -121,22 +134,84 @@ def jouer_partie(joueur_b_private_key, contrat_address):
         print(f"Total stakes: {w3.from_wei(mises[0] + mises[1], 'ether')} ETH")
 
 if __name__ == "__main__":
-    print("1. Player A - Create the contract")
-    print("2. Player B - Play the game")
-    choix = input("Choose (1 or 2): ")
+    running = True
     
-    if choix == "1":
-        secret_number = int(input("Enter the secret number: "))
-        max_attempts = int(input("Enter the number of attempts: "))
-        use_staking = input("Do you want to use staking? (y/n): ").lower() == 'y'
+    while running:
+        print("\n1. Player A - Create the contract")
+        print("2. Player B - Play the game")
+        print("3. Exit")
+        choix = input("Choose (1, 2, or 3): ")
         
-        if use_staking:
-            stake = float(input("Enter your stake in ETH: "))
-            deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts, stake)
+        if choix == "1":
+            # Input validation for secret number
+            while True:
+                try:
+                    secret_number = int(input("Enter the secret number (between 1 and 100): "))
+                    if 1 <= secret_number <= 100:
+                        break
+                    else:
+                        print("Error: The secret number must be between 1 and 100.")
+                except ValueError:
+                    print("Error: Please enter a valid number.")
+            
+            # Input validation for number of attempts
+            while True:
+                try:
+                    max_attempts = int(input("Enter the number of attempts (between 1 and 10): "))
+                    if 1 <= max_attempts <= 10:
+                        break
+                    else:
+                        print("Error: The number of attempts must be between 1 and 10.")
+                except ValueError:
+                    print("Error: Please enter a valid number.")
+            
+            # Ask about staking
+            while True:
+                use_staking_input = input("Do you want to use staking? (y/n): ").lower()
+                if use_staking_input in ['y', 'n']:
+                    use_staking = (use_staking_input == 'y')
+                    break
+                else:
+                    print("Error: Please enter 'y' or 'n'.")
+            
+            try:
+                if use_staking:
+                    # Input validation for stake
+                    while True:
+                        try:
+                            stake = float(input("Enter your stake in ETH (must be positive): "))
+                            if stake > 0:
+                                break
+                            else:
+                                print("Error: Stake must be a positive value.")
+                        except ValueError:
+                            print("Error: Please enter a valid number.")
+                    
+                    deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts, stake)
+                else:
+                    deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts)
+            except Exception as e:
+                print(f"Error deploying contract: {e}")
+        elif choix == "2":
+            # Input validation for contract address
+            while True:
+                adresse_contrat = input("Enter the contract address (0x...): ")
+                if adresse_contrat.startswith('0x') and len(adresse_contrat) == 42:
+                    try:
+                        # Check if it's a valid address format
+                        w3.to_checksum_address(adresse_contrat)
+                        break
+                    except ValueError:
+                        print("Error: Invalid Ethereum address format.")
+                else:
+                    print("Error: Address must start with '0x' and be 42 characters long.")
+            
+            try:
+                jouer_partie(PRIVATE_KEY_JOUEUR_B, adresse_contrat)
+            except Exception as e:
+                print(f"Error connecting to contract: {e}")
+        elif choix == "3":
+            print("Exiting the program...")
+            running = False
         else:
-            deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts)
-    elif choix == "2":
-        adresse_contrat = input("Enter the contract address: ")
-        jouer_partie(PRIVATE_KEY_JOUEUR_B, adresse_contrat)
-    else:
-        print("Invalid choice")
+            print("Invalid choice")

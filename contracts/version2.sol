@@ -17,8 +17,8 @@ contract DevineNombreV2 {
     event GuessResult(string result, uint attemptsRemaining);
 
     constructor(uint _secretNumber, uint _maxAttempts) payable {
-        require(_secretNumber >= 1 && _secretNumber <= 100, "Le nombre doit etre entre 1 et 100");
-        require(msg.value > 0, "Une mise est requise");
+        require(_secretNumber >= 1 && _secretNumber <= 100, "The number must be between 1 and 100");
+        require(msg.value > 0, "A stake is required");
         
         secretNumber = _secretNumber;
         maxAttempts = _maxAttempts;
@@ -30,9 +30,9 @@ contract DevineNombreV2 {
     }
 
     function miser() external payable {
-        require(!bMise, "Le joueur B a deja mise");
-        require(msg.value > 0, "Une mise est requise");
-        require(msg.sender != joueurA, "Le joueur A ne peut pas miser deux fois");
+        require(!bMise, "Player B has already placed a stake");
+        require(msg.value > 0, "A stake is required");
+        require(msg.sender != joueurA, "Player A cannot stake twice");
         
         joueurB = payable(msg.sender);
         miseB = msg.value;
@@ -40,10 +40,10 @@ contract DevineNombreV2 {
     }
 
     function deviner(uint _nombre) external returns (string memory) {
-        require(gameActive, "La partie est terminee");
-        require(bMise, "Le joueur B doit miser d'abord");
-        require(_nombre >= 1 && _nombre <= 100, "Le nombre doit etre entre 1 et 100");
-        require(msg.sender == joueurB, "Seul le joueur B peut deviner");
+        require(gameActive, "The game is over");
+        require(bMise, "Player B must stake first");
+        require(_nombre >= 1 && _nombre <= 100, "The number must be between 1 and 100");
+        require(msg.sender == joueurB, "Only player B can guess");
         
         attemptsLeft--;
         
@@ -57,15 +57,15 @@ contract DevineNombreV2 {
                 gameActive = false;
                 joueurA.transfer(miseA + miseB);
             }
-            emit GuessResult("Plus grand", attemptsLeft);
-            return "Plus grand";
+            emit GuessResult("Higher", attemptsLeft);
+            return "Higher";
         } else {
             if (attemptsLeft == 0) {
                 gameActive = false;
                 joueurA.transfer(miseA + miseB);
             }
-            emit GuessResult("Plus petit", attemptsLeft);
-            return "Plus petit";
+            emit GuessResult("Lower", attemptsLeft);
+            return "Lower";
         }
     }
 

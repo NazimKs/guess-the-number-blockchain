@@ -19,7 +19,7 @@ contract DevineNombreGenerique {
     event GuessResult(string result, uint attemptsRemaining);
 
     constructor(uint _secretNumber, uint _maxAttempts, bool _hasStaking) payable {
-        require(_secretNumber >= 1 && _secretNumber <= 100, "Le nombre doit etre entre 1 et 100");
+        require(_secretNumber >= 1 && _secretNumber <= 100, "The number must be between 1 and 100");
         secretNumber = _secretNumber;
         maxAttempts = _maxAttempts;
         attemptsLeft = _maxAttempts;
@@ -27,7 +27,7 @@ contract DevineNombreGenerique {
         hasStaking = _hasStaking;
         
         if (hasStaking) {
-            require(msg.value > 0, "Une mise est requise");
+            require(msg.value > 0, "A stake is required");
             joueurA = payable(msg.sender);
             miseA = msg.value;
             aMise = true;
@@ -35,10 +35,10 @@ contract DevineNombreGenerique {
     }
 
     function miser() external payable {
-        require(hasStaking, "Ce contrat n'a pas de fonctionnalite de mise");
-        require(!bMise, "Le joueur B a deja mise");
-        require(msg.value > 0, "Une mise est requise");
-        require(msg.sender != joueurA, "Le joueur A ne peut pas miser deux fois");
+        require(hasStaking, "This contract does not have staking functionality");
+        require(!bMise, "Player B has already placed a stake");
+        require(msg.value > 0, "A stake is required");
+        require(msg.sender != joueurA, "Player A cannot stake twice");
         
         joueurB = payable(msg.sender);
         miseB = msg.value;
@@ -46,12 +46,12 @@ contract DevineNombreGenerique {
     }
 
     function deviner(uint _nombre) external returns (string memory) {
-        require(gameActive, "La partie est terminee");
-        require(_nombre >= 1 && _nombre <= 100, "Le nombre doit etre entre 1 et 100");
+        require(gameActive, "The game is over");
+        require(_nombre >= 1 && _nombre <= 100, "The number must be between 1 and 100");
         
         if (hasStaking) {
-            require(bMise, "Le joueur B doit miser d'abord");
-            require(msg.sender == joueurB, "Seul le joueur B peut deviner");
+            require(bMise, "Player B must stake first");
+            require(msg.sender == joueurB, "Only player B can guess");
         }
         
         attemptsLeft--;
@@ -70,8 +70,8 @@ contract DevineNombreGenerique {
                     joueurA.transfer(miseA + miseB);
                 }
             }
-            emit GuessResult("Plus grand", attemptsLeft);
-            return "Plus grand";
+            emit GuessResult("Higher", attemptsLeft);
+            return "Higher";
         } else {
             if (attemptsLeft == 0) {
                 gameActive = false;
@@ -79,8 +79,8 @@ contract DevineNombreGenerique {
                     joueurA.transfer(miseA + miseB);
                 }
             }
-            emit GuessResult("Plus petit", attemptsLeft);
-            return "Plus petit";
+            emit GuessResult("Lower", attemptsLeft);
+            return "Lower";
         }
     }
 
@@ -89,7 +89,7 @@ contract DevineNombreGenerique {
     }
     
     function getMises() external view returns (uint, uint) {
-        require(hasStaking, "Ce contrat n'a pas de fonctionnalite de mise");
+        require(hasStaking, "This contract does not have staking functionality");
         return (miseA, miseB);
     }
 }

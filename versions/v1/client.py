@@ -84,16 +84,61 @@ def jouer_partie(joueur_b_private_key, contrat_address):
 
 
 if __name__ == "__main__":
-    print("1. Player A - Create the contract")
-    print("2. Player B - Play the game")
-    choix = input("Choose (1 or 2): ")
+    running = True
     
-    if choix == "1":
-        secret_number = int(input("Enter the secret number: "))
-        max_attempts = int(input("Enter the number of attempts: "))
-        deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts)
-    elif choix == "2":
-        adresse_contrat = input("Enter the contract address: ")
-        jouer_partie(PRIVATE_KEY_JOUEUR_B, adresse_contrat)
-    else:
-        print("Invalid choice")
+    while running:
+        print("\n1. Player A - Create the contract")
+        print("2. Player B - Play the game")
+        print("3. Exit")
+        choix = input("Choose (1, 2, or 3): ")
+        
+        if choix == "1":
+            # Input validation for secret number
+            while True:
+                try:
+                    secret_number = int(input("Enter the secret number (between 1 and 100): "))
+                    if 1 <= secret_number <= 100:
+                        break
+                    else:
+                        print("Error: The secret number must be between 1 and 100.")
+                except ValueError:
+                    print("Error: Please enter a valid number.")
+            
+            # Input validation for number of attempts
+            while True:
+                try:
+                    max_attempts = int(input("Enter the number of attempts (between 1 and 10): "))
+                    if 1 <= max_attempts <= 10:
+                        break
+                    else:
+                        print("Error: The number of attempts must be between 1 and 10.")
+                except ValueError:
+                    print("Error: Please enter a valid number.")
+            
+            try:
+                deploy_contract(PRIVATE_KEY_JOUEUR_A, secret_number, max_attempts)
+            except Exception as e:
+                print(f"Error deploying contract: {e}")
+        elif choix == "2":
+            # Input validation for contract address
+            while True:
+                adresse_contrat = input("Enter the contract address (0x...): ")
+                if adresse_contrat.startswith('0x') and len(adresse_contrat) == 42:
+                    try:
+                        # Check if it's a valid address format
+                        w3.to_checksum_address(adresse_contrat)
+                        break
+                    except ValueError:
+                        print("Error: Invalid Ethereum address format.")
+                else:
+                    print("Error: Address must start with '0x' and be 42 characters long.")
+            
+            try:
+                jouer_partie(PRIVATE_KEY_JOUEUR_B, adresse_contrat)
+            except Exception as e:
+                print(f"Error connecting to contract: {e}")
+        elif choix == "3":
+            print("Exiting the program...")
+            running = False
+        else:
+            print("Invalid choice")

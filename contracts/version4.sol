@@ -19,7 +19,7 @@ contract DevineNombreHache {
     event GuessResult(string result, uint attemptsRemaining);
 
     constructor(bytes32 _secretHash, uint _maxAttempts, bool _hasStaking) payable {
-        require(_maxAttempts > 0, "Le nombre de tentatives doit etre superieur a 0");
+        require(_maxAttempts > 0, "The number of attempts must be greater than 0");
         secretHash = _secretHash;
         maxAttempts = _maxAttempts;
         attemptsLeft = _maxAttempts;
@@ -27,7 +27,7 @@ contract DevineNombreHache {
         hasStaking = _hasStaking;
         
         if (hasStaking) {
-            require(msg.value > 0, "Une mise est requise");
+            require(msg.value > 0, "A stake is required");
             joueurA = payable(msg.sender);
             miseA = msg.value;
             aMise = true;
@@ -35,10 +35,10 @@ contract DevineNombreHache {
     }
 
     function miser() external payable {
-        require(hasStaking, "Ce contrat n'a pas de fonctionnalite de mise");
-        require(!bMise, "Le joueur B a deja mise");
-        require(msg.value > 0, "Une mise est requise");
-        require(msg.sender != joueurA, "Le joueur A ne peut pas miser deux fois");
+        require(hasStaking, "This contract does not have staking functionality");
+        require(!bMise, "Player B has already placed a stake");
+        require(msg.value > 0, "A stake is required");
+        require(msg.sender != joueurA, "Player A cannot stake twice");
         
         joueurB = payable(msg.sender);
         miseB = msg.value;
@@ -46,11 +46,11 @@ contract DevineNombreHache {
     }
 
     function deviner(bytes32 _proposition) external returns (string memory) {
-        require(gameActive, "La partie est terminee");
+        require(gameActive, "The game is over");
         
         if (hasStaking) {
-            require(bMise, "Le joueur B doit miser d'abord");
-            require(msg.sender == joueurB, "Seul le joueur B peut deviner");
+            require(bMise, "Player B must stake first");
+            require(msg.sender == joueurB, "Only player B can guess");
         }
         
         attemptsLeft--;
@@ -67,8 +67,8 @@ contract DevineNombreHache {
             if (hasStaking) {
                 joueurA.transfer(miseA + miseB);
             }
-            emit GuessResult("Perdu", attemptsLeft);
-            return "Perdu";
+            emit GuessResult("Lost", attemptsLeft);
+            return "Lost";
         } else {
             emit GuessResult("Incorrect", attemptsLeft);
             return "Incorrect";
@@ -80,7 +80,7 @@ contract DevineNombreHache {
     }
     
     function getMises() external view returns (uint, uint) {
-        require(hasStaking, "Ce contrat n'a pas de fonctionnalite de mise");
+        require(hasStaking, "This contract does not have staking functionality");
         return (miseA, miseB);
     }
 }
